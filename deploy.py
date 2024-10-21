@@ -20,7 +20,6 @@ class GraphVisualization:
         self.current_flow = 0
         self.step_state = 0  # Controlar la etapa de visualización (0: exploración, 1: visualización completa)
         self.remaining_path = []  # Para visualizar paso a paso las aristas del camino
-        self.fig, self.ax = plt.subplots()  # Crear figura y ejes aquí
         self.init_visualization()
 
     # Construir el grafo a partir de la matriz de adyacencia
@@ -83,7 +82,7 @@ class GraphVisualization:
 
     # Visualización inicial del grafo
     def init_visualization(self):
-        self.ax.clear()  # Limpiar el gráfico en lugar de crear uno nuevo
+        plt.clf()  # Limpiar la figura
         self.pos = nx.spring_layout(self.G, k=5.5)  # Aumentar el valor de k para más dispersión
         plt.title("Red de flujo (Ford-Fulkerson)")
         self.draw_graph()
@@ -108,22 +107,23 @@ class GraphVisualization:
         # Colorear el nodo fuente y sumidero
         node_colors = ['blue' if node == self.source else 'red' if node == self.sink else 'gray' for node in self.G.nodes()]
 
-        nx.draw(self.G, self.pos, with_labels=True, node_color=node_colors, edge_color=edge_colors, node_size=700, font_size=10, font_color='white', ax=self.ax)
-        nx.draw_networkx_edge_labels(self.G, self.pos, edge_labels=edge_labels, ax=self.ax)
+        nx.draw(self.G, self.pos, with_labels=True, node_color=node_colors, edge_color=edge_colors, node_size=700, font_size=10, font_color='white')
+        nx.draw_networkx_edge_labels(self.G, self.pos, edge_labels=edge_labels)
 
         # Mostrar el flujo máximo si hemos terminado
         if not self.paths and self.max_flow == 0:
-            self.ax.set_title("No existe conexión entre el nodo de inicio y el final")
+            plt.title("No existe conexión entre el nodo de inicio y el final")
         elif not self.paths and self.max_flow > 0 and self.remaining_path == []:
-            self.ax.set_title(f"Flujo máximo: {self.max_flow}")
+            plt.title(f"Flujo máximo: {self.max_flow}")
             plt.suptitle("")  # Limpiar el subtítulo después de terminar todo
         elif current_edge:  # Si estamos en medio de una iteración, mostrar el camino actual
-            self.ax.set_title(f"Red de flujo (Ford-Fulkerson)")
+            plt.title(f"Red de flujo (Ford-Fulkerson)")
             plt.suptitle(f"Camino actual: {current_edge[0]} -> {current_edge[1]}")
         else:
+             
             plt.suptitle("Enviando flujo")  # Limpiar el subtítulo cuando no hay un camino activo
 
-        self.fig.canvas.draw_idle()  # Actualizar la figura
+        plt.draw()
 
     # Avanzar al siguiente paso del flujo
     def next_step(self, event):
@@ -142,7 +142,7 @@ class GraphVisualization:
                 self.draw_graph()
 
             print(f"Flujo máximo: {self.max_flow}")
-            self.ax.set_title(f"Flujo máximo: {self.max_flow}")
+            plt.title(f"Flujo máximo: {self.max_flow}")
             plt.suptitle("")  # Limpiar el subtítulo solo después de la última actualización
             return
 
@@ -158,8 +158,6 @@ class GraphVisualization:
             if self.remaining_path:
                 current_edge = self.remaining_path.pop(0)  # Quitar una arista del camino actual
                 self.draw_graph(current_edge)  # Mostrar la arista actual
-
-                # Comprobación adicional: si es el último tramo, visualizar antes de avanzar
                 if not self.remaining_path:  # Si el camino está completo, pasamos a la siguiente etapa
                     self.step_state = 1
             else:
@@ -179,12 +177,12 @@ class GraphVisualization:
             self.draw_graph()
 
 # Definir tamaño de la matriz, fuente y sumidero
-matrix_size = 6
+matrix_size = 8
 source = 0
 sink = matrix_size - 1
 
 # Generar una matriz de adyacencia aleatoria de 16x16 con conexiones limitadas
-np.random.seed(42)  # Para tener resultados reproducibles (opcional)
+np.random.seed(55)  # Para tener resultados reproducibles (opcional)
 
 # Generamos una matriz de adyacencia aleatoria, pero con pocas conexiones (probabilidad del 30%)
 graph = np.random.randint(0, 21, size=(matrix_size, matrix_size))  # Capacidades aleatorias entre 0 y 20
@@ -207,8 +205,12 @@ graph_vis = GraphVisualization(graph, source, sink)
 # Ejecutar el algoritmo Ford-Fulkerson paso a paso
 graph_vis.ford_fulkerson_step_by_step()
 
-# Crear botón en la misma figura
-ax_button = plt.axes([0.4, 0.05, 0.2, 0.075], figure=graph_vis.fig)
+# Configurar el botón para avanzar paso a paso
+fig, ax = plt.subplots()
+plt.subplots_adjust(bottom=0.2)
+
+# Crear botón
+ax_button = plt.axes([0.4, 0.05, 0.2, 0.075])
 button = Button(ax_button, 'Siguiente')
 button.on_clicked(graph_vis.next_step)
 

@@ -158,8 +158,6 @@ class GraphVisualization:
             if self.remaining_path:
                 current_edge = self.remaining_path.pop(0)  # Quitar una arista del camino actual
                 self.draw_graph(current_edge)  # Mostrar la arista actual
-
-                # Comprobación adicional: si es el último tramo, visualizar antes de avanzar
                 if not self.remaining_path:  # Si el camino está completo, pasamos a la siguiente etapa
                     self.step_state = 1
             else:
@@ -179,12 +177,12 @@ class GraphVisualization:
             self.draw_graph()
 
 # Definir tamaño de la matriz, fuente y sumidero
-matrix_size = 6
+matrix_size = 8
 source = 0
 sink = matrix_size - 1
 
 # Generar una matriz de adyacencia aleatoria de 16x16 con conexiones limitadas
-np.random.seed(42)  # Para tener resultados reproducibles (opcional)
+np.random.seed(55)  # Para tener resultados reproducibles (opcional)
 
 # Generamos una matriz de adyacencia aleatoria, pero con pocas conexiones (probabilidad del 30%)
 graph = np.random.randint(0, 21, size=(matrix_size, matrix_size))  # Capacidades aleatorias entre 0 y 20
