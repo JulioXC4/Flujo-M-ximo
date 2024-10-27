@@ -189,7 +189,7 @@ while matrix_size < 8 or matrix_size > 16:
     matrix_size = int(input("Elige el tamaño de la matriz (8-16): "))
 
 # Preguntar si se desea una matriz generada manualmente o aleatoriamente
-manual = input("¿Deseas agregar las conexiones manualmente? (sí/no): ").strip().lower() == "sí"
+manual = input("¿Deseas agregar las conexiones manualmente? (si/no): ").strip().lower() == "si"
 
 # Generar matriz de adyacencia
 if manual:
