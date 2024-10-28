@@ -36,7 +36,6 @@ class GraphVisualization:
 
         while queue:
             u = queue.pop(0)
-
             for v in range(self.n):
                 if not visited[v] and self.graph[u][v] > 0:
                     queue.append(v)
@@ -44,32 +43,26 @@ class GraphVisualization:
                     parent[v] = u
                     if v == t:
                         return True
-
         return False
 
     def ford_fulkerson_step_by_step(self):
         self.paths = []
-
         while self.bfs(self.source, self.sink, self.parent):
             path_flow = float("Inf")
             s = self.sink
             path = []
-
             while s != self.source:
                 path_flow = min(path_flow, self.graph[self.parent[s]][s])
                 path.insert(0, (self.parent[s], s))
                 s = self.parent[s]
-
             self.paths.append((path, path_flow))
             self.flow += path_flow
-
             v = self.sink
             while v != self.source:
                 u = self.parent[v]
                 self.graph[u][v] -= path_flow
                 self.graph[v][u] += path_flow
                 v = self.parent[v]
-
         self.max_flow = self.flow
         self.current_path = None
 
@@ -82,7 +75,6 @@ class GraphVisualization:
     def draw_graph(self, current_edge=None):
         edge_colors = []
         edge_labels = {}
-
         for u, v, d in self.G.edges(data=True):
             if self.current_path is not None and (u, v) in self.current_path:
                 edge_colors.append("blue")
@@ -92,14 +84,10 @@ class GraphVisualization:
                 edge_colors.append("red")
             else:
                 edge_colors.append("black")
-
             edge_labels[(u, v)] = f"{d['flow']}/{d['capacity']}"
-
         node_colors = ['blue' if node == self.source else 'red' if node == self.sink else 'gray' for node in self.G.nodes()]
-
         nx.draw(self.G, self.pos, with_labels=True, node_color=node_colors, edge_color=edge_colors, node_size=700, font_size=10, font_color='white', ax=self.ax)
         nx.draw_networkx_edge_labels(self.G, self.pos, edge_labels=edge_labels, ax=self.ax)
-
         if not self.paths and self.max_flow == 0:
             self.ax.set_title("No existe conexión entre el nodo de inicio y el final")
         elif not self.paths and self.max_flow > 0 and self.remaining_path == []:
@@ -110,7 +98,6 @@ class GraphVisualization:
             plt.suptitle(f"Camino actual: {current_edge[0]} -> {current_edge[1]}")
         else:
             plt.suptitle("Enviando flujo")
-
         self.fig.canvas.draw_idle()
 
     def next_step(self, event):
@@ -124,53 +111,53 @@ class GraphVisualization:
                 self.remaining_path = []
                 self.step_state = 0
                 self.draw_graph()
-
             self.ax.set_title(f"Flujo máximo: {self.max_flow}")
             plt.suptitle("")
             return
-
         if self.step_state == 0:
             if not self.remaining_path:
                 path, path_flow = self.paths.pop(0)
                 self.current_path = path
                 self.current_flow = path_flow
                 self.remaining_path = path.copy()
-
             if self.remaining_path:
                 current_edge = self.remaining_path.pop(0)
                 self.draw_graph(current_edge)
-
                 if not self.remaining_path:
                     self.step_state = 1
             else:
                 self.draw_graph()
-
         elif self.step_state == 1:
             for u, v in self.current_path:
                 self.G[u][v]['flow'] += self.current_flow
                 if self.G.has_edge(v, u):
                     self.G[v][u]['flow'] -= self.current_flow
-
             self.step_state = 0
             self.current_path = None
             self.remaining_path = []
             self.draw_graph()
 
 matrix_size = int(input("Elige el tamaño de la matriz (8-16): "))
-source = 0
-sink = matrix_size - 1
-
 while matrix_size < 8 or matrix_size > 16:
     print("Tamaño no válido. Debe estar entre 8 y 16.")
     matrix_size = int(input("Elige el tamaño de la matriz (8-16): "))
 
+# Solicitar al usuario los nodos de inicio y sumidero con un mensaje explicativo
+print("Para realizar el algoritmo de Ford-Fulkerson, necesitamos que ingreses el nodo de inicio y el nodo sumidero.")
+source = int(input(f"Selecciona el nodo de inicio (0-{matrix_size - 1}): "))
+sink = int(input(f"Selecciona el nodo sumidero (0-{matrix_size - 1}): "))
+
+# Validar que el nodo de inicio y sumidero sean diferentes y estén dentro de los límites
+while source < 0 or source >= matrix_size or sink < 0 or sink >= matrix_size or source == sink:
+    print("Nodos no válidos o iguales. Intenta otra vez.")
+    source = int(input(f"Selecciona el nodo de inicio (0-{matrix_size - 1}): "))
+    sink = int(input(f"Selecciona el nodo sumidero (0-{matrix_size - 1}): "))
 # Preguntar si se desea una matriz generada manualmente o aleatoriamente
 manual = input("¿Deseas agregar las conexiones manualmente? (si/no): ").strip().lower() == "si"
-
 if manual:
     graph = np.zeros((matrix_size, matrix_size), dtype=int)
     print("Ingresa las conexiones y capacidades (deja vacío para terminar):")
-    available_nodes = [i for i in range(matrix_size)]  # Incluir todos los nodos
+    available_nodes = [i for i in range(matrix_size)]
     print(f"Puedes conectar entre los nodos disponibles: {available_nodes}")
     while True:
         u = input("Nodo de inicio: ")
@@ -180,27 +167,22 @@ if manual:
         if v == "":
             break
         u, v = int(u), int(v)
-
-        # Validar que la conexión no sea directa entre fuente y sumidero, y que los nodos sean válidos
         if (u == source and v == sink) or u < 0 or u >= matrix_size or v < 0 or v >= matrix_size:
             print("Conexión no permitida. Intenta otra vez.")
             continue
-
         capacity = int(input(f"Capacidad de nodo {u} a nodo {v}: "))
         graph[u][v] = capacity
-
 else:
-    # Generar matriz aleatoria con algunas conexiones
     np.random.seed(42)
     graph = np.random.randint(0, 21, size=(matrix_size, matrix_size))
-    np.fill_diagonal(graph, 0)  # No permitir bucles en el grafo
+    np.fill_diagonal(graph, 0)
     for i in range(matrix_size):
         for j in range(i + 1, matrix_size):
             if np.random.rand() < 0.5:
                 graph[j][i] = 0
             else:
                 graph[i][j] = 0
-    graph[source][sink] = 0  # No permitir conexión directa entre el nodo de inicio y fin
+    graph[source][sink] = 0
 
 # Mostrar la matriz de adyacencia en consola
 print("\nMatriz de adyacencia generada:")
